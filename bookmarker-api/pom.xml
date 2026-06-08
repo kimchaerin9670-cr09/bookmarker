@@ -258,10 +258,6 @@
 		       	<!-- 생성된 이미지는 바로 Docker hub로 전송된다. -->
 		         <to>
 		           <image>docker.io/rin909/${project.artifactId}</image>
-		           <auth>
-		           		<username>rin909</username>
-		           		<password>dckr_pat_Rez-wyLrAl0dY3lWcEXjfbdxmgg</password>
-		           </auth>
 		         </to>
 		       </configuration>
 		    </plugin>
