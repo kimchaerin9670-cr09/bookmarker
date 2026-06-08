@@ -1,0 +1,48 @@
+package com.min.edu.service;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.min.edu.domain.Bookmark;
+import com.min.edu.dto.BookmarkDto;
+import com.min.edu.dto.BookmarksDto;
+import com.min.edu.mapper.BookmarkMapper;
+import com.min.edu.repository.BookmarkRepository;
+
+import lombok.RequiredArgsConstructor;
+
+
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class BookmarkService {
+
+	private final BookmarkRepository repository;
+	private final BookmarkMapper bookmarkMapper;
+	
+	@Transactional(readOnly = true)
+	public BookmarksDto getBookmarks(Integer page) {
+		
+		int pageNo = page < 1 ? 0: page -1;
+		// jap page를 사용한다면 Pageable에 담아서 JPA 메소드에 전달
+		Pageable pageable = PageRequest.of(pageNo, 10, Sort.Direction.DESC, "createdAt");
+		
+//		return new BookmarksDto(repository.findAll(pageable));
+		
+//		Page<BookmarkDto> bookmarkPage = 
+//				repository.findAll(pageable).map(bookmark -> bookmarkMapper.toDto(bookmark));
+//		
+//		return new BookmarksDto(bookmarkPage);
+		
+		Page<BookmarkDto> bookmarkPage = repository.findByBookmarks(pageable);
+		return new BookmarksDto(bookmarkPage);
+	}
+	
+}
