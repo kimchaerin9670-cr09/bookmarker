@@ -7,94 +7,105 @@
 # documentation.
 
 name: Java CI with Maven
-# 어떤 Branch라도 코드가 push될 때마다 
+
+# 어떤 Branch라도 코드가 push될 때마다 workflow가 실행되도록 함
 on:
   push:
     branches:
-      - "**" # 모든 브랜치에 push할 때 실행
+      - "**"
 
+# Jobs를 통해서 workflow 단계 만들어 준다
 jobs:
   build-bookmark-api:
-    runs-on: ubuntu-latest # GitHub에서 제공하는 우분투 서버에서 실행
+    runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: ./bookmarker-api # 모든 명령어를 이 폴더에서 실행
+        working-directory: ./bookmarker-api
 
     steps:
-      - uses: actions/checkout@v4 # 레포지토리 코드를 서버에 내려받음
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin' # Eclipse Temurin 배포판 (무료 OpenJDK)
-          cache: maven # Maven 의존성 캐싱 (빌드 속도 향상)
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
 
-    # mvnw 실행 권한 부여
-    # 컴파일 + 테스트 + 패키징 전체 실행
-    # Maven Build 작업 시 권한을 설정 접근 허용 +x 실행 권한
+      # Maven Build 작업 시 실행 권한 부여
       - name: Build with Maven
         run: |
           chmod +x mvnw
           ./mvnw verify
-# docker tty 명령어를 사용하기 위한 환경설정
+
+      # Docker 이미지 빌드 및 Push
       - name: Build and Push Image
         if: github.ref == 'refs/heads/main'
         run: |
           ./mvnw clean package jib:dockerBuild -DskipTests
+
           docker login \
             -u ${{ secrets.DOCKER_USERNAME }} \
             -p ${{ secrets.DOCKER_PASSWORD }}
+
           docker build \
             -t myimage:latest .
-          docker tag myimage:latest ${{ secrets.DOCKER_USERNAME }}/bookmarker-api:latest
+
+          docker tag myimage:latest \
+            ${{ secrets.DOCKER_USERNAME }}/bookmarker-api:latest
+
           docker push \
             ${{ secrets.DOCKER_USERNAME }}/bookmarker-api:latest
 
-#######################################################
-#         bookmar-ui-nextjs 빌드 및 docker 배포         #
-#######################################################
+  #######################################################
+  #         bookmark-ui-nextjs 빌드 및 Docker 배포
+  #######################################################
   build-bookmarker-ui:
     name: Build bookmarker-ui
     runs-on: ubuntu-latest
+
     defaults:
-      # 배포된 git repository의 폴더명
       run:
         working-directory: ./bookmark-ui-nextjs
+
     steps:
-      #코드체크아웃
+      # 코드 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      #Node.js 설정
+      # Node.js 설정
       - name: Setup Node.js 22
         uses: actions/setup-node@v5
         with:
           node-version: 22
-      
-      #의존성 설치
-      - name: Install dependecies
-        run: npm ci
-      
-      #.env.local 파일 설정
-      # 복사해서 사용하지 않는 이유는 UI의 .gitignore 파일은 .env* 파일을 제외 한다
-      # 파일을 작성해서 넣어 준다 echo 문서를 만들어 준다
-      - name: Create .env 파일 생성
-        run: |
-          echo "SERVER_SIDE_API_BASE_URL=${{ secrets.SERVER_SIDE_API_BASE_URL }}" > .env.local
-          echo "NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL }}" >> .env.local
 
-      #Next.js 빌드
+      # 의존성 설치
+      - name: Install dependencies
+        run: npm ci
+
+      # Next.js Build (환경 변수 적용)
       - name: Next.js Build
+        env:
+          SERVER_SIDE_API_BASE_URL: ${{ secrets.SERVER_SIDE_API_BASE_URL }}
+          NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL }}
         run: npm run build
 
-      # 메인 브렌치 일경우 Docker 이미지 빌드 및 배포
-      - if: ${{ github.ref == 'refs/heads/main' }}
-        name: Build and Push Docker image
+      # main 브랜치일 경우 Docker 이미지 빌드 및 배포
+      - name: Build and Push Docker image
+        if: github.ref == 'refs/heads/main'
         run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -f Dockerfile.ui -t ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs .
-          docker push ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.DOCKER_USERNAME }}" \
+            --password-stdin
+
+          docker build \
+            --build-arg SERVER_SIDE_API_BASE_URL="${{ secrets.SERVER_SIDE_API_BASE_URL }}" \
+            --build-arg NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL="${{ secrets.NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL }}" \
+            -f Dockerfile.ui \
+            -t ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs:latest .
+
+          docker push \
+            ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs:latest
 
 

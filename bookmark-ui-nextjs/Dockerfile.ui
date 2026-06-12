@@ -35,7 +35,7 @@ COPY . .
 # 1단계에서 설치한 node_modules 복사
 COPY --from=deps /app/node_modules ./node_modules
 
-COPY .env.local .env.local
+# COPY .env.local .env.local
 
 # Next.js 빌드 실행
 # 결과물은 .next 폴더에 생성된다.
