@@ -4,6 +4,10 @@
 ### DBeaver ###
 # ide config file
 .dbeaver-data-sources*.xml
+.dbeaver/
+credentials-config.json
+data-sources.json
+project-settings.json
 
 ### Eclipse ###
 .metadata
@@ -230,3 +234,7 @@ buildNumber.properties
 .classpath
 
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,eclipse,dbeaver,intellij
+
+node_modules/
+.next/
+.env.local

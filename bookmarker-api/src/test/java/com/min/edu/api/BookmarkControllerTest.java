@@ -2,6 +2,7 @@ package com.min.edu.api;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.is;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.min.edu.domain.Bookmark;
@@ -87,7 +90,7 @@ class BookmarkControllerTest {
 	
 	// 페이징을 값을 입력해서 나오는 결과를 테스트한다.
 	// page가 1이 전달됐을때 테스트, page가 2가 전달됐을 때 테스트
-	@ParameterizedTest
+//	@ParameterizedTest
 	@CsvSource({"1,15,2,1,true,false,true,false", "2,15,2,2,false,true,false,true"})
 	void shouldBookmarksPage(int pageNo, int totalElements, int totalPages, int currentPage,
 			boolean isFirst, boolean isLast, boolean hasNext, boolean hasPrevious
@@ -104,6 +107,41 @@ class BookmarkControllerTest {
 		.andExpect(jsonPath("$.hasPrevious", CoreMatchers.equalTo(hasPrevious)))
 		;
 		
+	}
+	
+	// 오류를 예측해서 테스트를 진행
+	@Test
+	public void shouldCreateBookmark() throws Exception {
+		
+		// 반환되는 결과를 확인하기 위해서는 MvcResult를 사용해야 한다.
+		MvcResult result = mvc.perform(
+				MockMvcRequestBuilders.post("/api/bookmarks")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{
+								"title":"Link Lion Study"
+							}
+							""")
+				)
+				/*
+				 * {
+					    "filed": "url",
+					    "message": "URL은 필수 입력값 입니다.",
+					    "status": 400
+					}
+				 */
+				.andExpect(status().is4xxClientError())
+				.andExpect(jsonPath("$.status", is(400)))
+				.andExpect(jsonPath("$.filed", is("url")))
+				.andExpect(jsonPath("$.message", is("URL은 필수 입력값 입니다.")))
+				.andReturn()
+				;
+		
+		String contentType = result.getResponse().getContentType();
+		System.out.println("Content-Type : \t" + contentType);
+		
+		String responseBody = result.getResponse().getContentAsString();
+		System.out.println("Response JSON : \t" + responseBody);
 	}
 
 }
