@@ -77,6 +77,8 @@ COPY --from=builder /app/node_modules ./node_modules
 
 # package.json
 COPY --from=builder /app/package.json ./package.json
+# 환경설정 파일은 .env.local 실행 폴더로 복사
+COPY --from=builder /app/.env.local ./
 
 # 일반 사용자 권한으로 실행
 USER nextjs
