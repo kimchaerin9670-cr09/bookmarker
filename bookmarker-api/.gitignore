@@ -8,7 +8,6 @@
 credentials-config.json
 data-sources.json
 project-settings.json
-
 ### Eclipse ###
 .metadata
 bin/
