@@ -25,23 +25,22 @@ spec:
         env:
             - name: SPRING_PROFILES_ACTIVE
               value: k8s
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: bookmarker-config
-                  key: postres_host
-
+            # - name: DB_HOST
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: bookmarker-config
+            #       key: postgres_host
             - name: DB_PORT
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_port
+                  key: postgres_port
 
             - name: DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_dbname
+                  key: postgres_dbname
 
             - name: DB_USERNAME
               valueFrom:

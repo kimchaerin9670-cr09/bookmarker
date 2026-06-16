@@ -27,18 +27,18 @@ spec:
           env:
             - name: POSTGRES_USER
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: bookmarker-config
-                  key: postres_username
+                  key: postgres_username
 
             - name: POSTGRES_PASSWORD
               valueFrom:
-                configMapKeyRef: 
-                  name: bookmarker-confg
-                  key: postres_password
+                secretKeyRef:
+                  name: bookmarker-config
+                  key: postgres_password
 
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_dbname
+                  key: postgres_dbname 
