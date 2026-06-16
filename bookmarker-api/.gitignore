@@ -237,3 +237,8 @@ buildNumber.properties
 node_modules/
 .next/
 .env.local
+
+
+# ETC
+kind.exe
+kind.zip
