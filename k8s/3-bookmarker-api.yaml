@@ -11,6 +11,8 @@ spec:
     matchLabels:
       app: bookmarker-api-pod
 
+
+
   template:
     metadata:
       labels:
@@ -18,18 +20,19 @@ spec:
 
     spec:
       containers:
-      - name: bookmarker-api
-        image: rin909/bookmarker-api:latest
-        ports:
-          - containerPort: 8080
-        env:
+        - name: bookmarker-api
+          image: rin909/bookmarker-api:latest
+          ports:
+            - containerPort: 8080
+          env:
             - name: SPRING_PROFILES_ACTIVE
               value: k8s
-            # - name: DB_HOST
-            #   valueFrom:
-            #     configMapKeyRef:
-            #       name: bookmarker-config
-            #       key: postgres_host
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: bookmarker-config
+                  key: postgres_host
+
             - name: DB_PORT
               valueFrom:
                 configMapKeyRef:
@@ -44,14 +47,14 @@ spec:
 
             - name: DB_USERNAME
               valueFrom:
-                configMapKeyRef:
-                  name: bookmarker-config
-                  key: postres_username
+                secretKeyRef:
+                  name: bookmark-secrets
+                  key: postgres_username
 
             - name: DB_PASSWORD
               valueFrom:
-                configMapKeyRef:
-                  name: bookmarker-config
-                  key: postres_password
+                secretKeyRef:
+                  name: bookmark-secrets
+                  key: postgres_password
 
 
